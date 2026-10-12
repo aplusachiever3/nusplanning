@@ -27,7 +27,7 @@
   .num{width:auto;height:auto;background:transparent;color:#17365d;border-radius:0;margin-right:5px;font-size:10pt}
   .status{background:#f1f3f2!important;color:#52645e!important;font-size:8pt;padding:2px 6px}
   .fields{display:block}
-  .field{margin:0 0 7px;min-width:0;break-inside:avoid}
+  .field{margin:0 0 7px;min-width:0;break-inside:avoid}\n  .field[data-print-empty="true"]{display:none!important}
   .field label{font-size:8pt;color:#64748b;margin:0 0 2px}
   .field input,.field select,.field textarea{display:block;width:100%;height:auto;min-height:0;border:0;border-radius:0;border-bottom:1px solid #edf0f3;background:#fff!important;color:#172b28!important;padding:2px 0;font-size:10pt;line-height:1.4;box-shadow:none;appearance:none;resize:none;overflow:visible;white-space:pre-wrap;overflow-wrap:anywhere}
   .field textarea{min-height:0}
@@ -134,9 +134,11 @@ function download(name,content,type){const blob=new Blob([content],{type:type}),
 $('export').addEventListener('click',async()=>{const backup={data,checks,exportedAt:new Date().toISOString(),attachmentNote:'Attachments are stored separately in this browser and are not included in this JSON backup. Download attached files individually before moving to another device.'};download('nus-medicine-top10-backup.json',JSON.stringify(backup,null,2),'application/json');});
 $('csv').addEventListener('click',()=>{const cols=['title','category','start','end','description','award','appointment','organisation','participationLevel','evidence','ready'];const quote=v=>'"'+String(v||'').replace(/"/g,'""')+'"';download('nus-medicine-top10.csv',[cols.join(','),...data.map(x=>cols.map(k=>quote(x[k])).join(','))].join(String.fromCharCode(13,10)),'text/csv;charset=utf-8;');});
 function hasPrintableContent(x){return ['title','category','start','end','description','award','appointment','organisation','participationLevel','evidence'].some(k=>String(x[k]||'').trim()!=='')||(Array.isArray(x.attachments)&&x.attachments.length>0);}
-function preparePrint(){document.querySelectorAll('#items .item').forEach((el,i)=>{el.dataset.printEmpty=hasPrintableContent(data[i])?'false':'true';});}
+function preparePrint(){document.querySelectorAll('#items .item').forEach((el,i)=>{el.dataset.printEmpty=hasPrintableContent(data[i])?'false':'true';el.querySelectorAll('.field').forEach(fieldEl=>{const control=fieldEl.querySelector('[data-k]');if(control){fieldEl.dataset.printEmpty=String(control.value||'').trim()===''?'true':'false';if(control.tagName==='TEXTAREA'){control.dataset.printOriginalHeight=control.style.height||'';control.style.height=Math.max(control.scrollHeight,24)+'px';}}else if(fieldEl.querySelector('.file-list')){fieldEl.dataset.printEmpty=(data[i].attachments||[]).length?'false':'true';}});});}
+function restoreAfterPrint(){document.querySelectorAll('textarea[data-print-original-height]').forEach(el=>{el.style.height=el.dataset.printOriginalHeight;delete el.dataset.printOriginalHeight;});}
 window.addEventListener('beforeprint',preparePrint);
-$('print').addEventListener('click',()=>{preparePrint();window.print();});
+window.addEventListener('afterprint',restoreAfterPrint);
+$('print').addEventListener('click',()=>{preparePrint();window.print();restoreAfterPrint();});
 $('reset').addEventListener('click',()=>{if(confirm('Clear all 10 entries and final checks from this browser? Export a backup first if needed.')){data=Array.from({length:10},blank);checks={};save();render();}});
 load();render();
 })();
