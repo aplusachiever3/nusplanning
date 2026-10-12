@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#123c35">
+<title>NUS Medicine | Top 10 Achievements Planner</title>
+<style>
+:root{--ink:#172b28;--muted:#61736e;--green:#123c35;--mint:#eaf3ef;--line:#dce6e1;--paper:#f7f9f7;--white:#fff;--gold:#c69a46;--red:#a54141}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:1100px;margin:auto;padding:24px 18px 60px}.hero{background:var(--green);color:white;border-radius:18px;padding:28px clamp(20px,4vw,42px);position:relative;overflow:hidden}.eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:800;color:#c9e2d7}.hero h1{font-size:clamp(28px,4vw,42px);line-height:1.12;margin:10px 0}.hero p{max-width:680px;color:#e1ece7;margin:0}.official{margin-top:18px;padding:12px 14px;border:1px solid #66877e;border-radius:10px;font-size:13px;color:#f1f7f4}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}.stat,.panel,.item{background:white;border:1px solid var(--line);border-radius:14px}.stat{padding:16px}.stat strong{font-size:26px;display:block;color:var(--green)}.stat span{color:var(--muted);font-size:12px}.panel{padding:20px;margin-top:16px}.panel h2{font-size:19px;margin:0 0 6px}.sub{color:var(--muted);font-size:13px;margin:0 0 14px}.progress{height:8px;background:#e7eeea;border-radius:9px;overflow:hidden}.progress div{height:100%;width:0;background:var(--green);transition:width .2s}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.btn{border:1px solid var(--line);background:white;color:var(--green);padding:9px 13px;border-radius:9px;font-weight:700}.btn.primary{background:var(--green);color:white;border-color:var(--green)}.btn:focus,input:focus,select:focus,textarea:focus{outline:3px solid #c5ded4;outline-offset:1px}.items{display:grid;grid-template-columns:1fr 1fr;gap:12px}.item{padding:16px;min-width:0}.itemhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}.itemhead h3{font-size:15px;margin:0}.num{display:inline-grid;place-items:center;width:28px;height:28px;background:var(--mint);color:var(--green);border-radius:8px;margin-right:7px;font-size:12px}.status{font-size:11px;font-weight:800;border-radius:99px;padding:4px 8px;background:#f1f3f2;color:#66736f;white-space:nowrap}.status.ready{background:#e4f3e8;color:#23663b}.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{min-width:0}.field.full{grid-column:1/-1}.field label{display:block;font-size:11px;color:#52645e;font-weight:800;margin-bottom:4px}.field input,.field select,.field textarea{width:100%;border:1px solid #d7e1dc;border-radius:8px;padding:9px;background:#fff;color:var(--ink)}.field textarea{min-height:72px;resize:vertical}.hint{font-size:12px;color:var(--muted);margin-top:8px}.checkrow{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--muted);margin-top:12px}.checkrow input{margin-top:3px;accent-color:var(--green)}.footer{color:var(--muted);font-size:12px;margin-top:18px}.links a{color:var(--green);font-weight:700}.notice{background:#fff8e8;border:1px solid #f0dfb6;border-radius:10px;padding:12px 14px;font-size:13px;margin-top:14px}.empty{color:var(--muted)}@media(max-width:700px){.items{grid-template-columns:1fr}.stats{gap:8px}.stat{padding:12px}.stat strong{font-size:22px}.wrap{padding:14px 12px 40px}.hero{border-radius:14px}}@media print{body{background:white}.wrap{max-width:none;padding:0}.hero{background:white;color:#123c35;border:1px solid #123c35}.hero p,.official{color:#333}.toolbar,.checkrow,.footer .actions{display:none}.items{grid-template-columns:1fr 1fr}.item,.panel,.stat{break-inside:avoid}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="hero">
+<div class="eyebrow">NUS Medicine Application Planner</div>
+<h1>Top 10 Achievements</h1>
+<p>A simple workspace to collect, review and prepare your strongest activities for the NUS Medicine portfolio.</p>
+<div class="official"><strong>Requirement to remember:</strong> NUS Medicine asks applicants to list their top 10 achievements and activities from the past 3–4 years. Academic and non-academic activities may be included. This planner helps organise information; it does not predict admission.</div>
+</section>
+<section class="stats" aria-label="Progress summary">
+<div class="stat"><strong id="count">0 / 10</strong><span>Entries with key details</span></div>
+<div class="stat"><strong id="ready">0 / 10</strong><span>Entries marked ready</span></div>
+<div class="stat"><strong id="evidence">0</strong><span>Evidence notes recorded</span></div>
+</section>
+<section class="panel">
+<h2>How to use this planner</h2>
+<p class="sub">Keep it honest and specific. Add real activities first, then choose the 10 most meaningful and relevant entries.</p>
+<div class="progress" aria-label="Overall completion"><div id="bar"></div></div>
+<div class="toolbar">
+<button class="btn primary" id="export">Export backup (JSON)</button>
+<button class="btn" id="csv">Export list (CSV)</button>
+<button class="btn" id="print">Print / Save PDF</button>
+<button class="btn" id="reset">Clear all entries</button>
+</div>
+<div class="notice"><strong>Closed-loop workflow:</strong> Record an activity → add dates and role → note the outcome and evidence → review accuracy → mark ready → choose your final top 10 → export and cross-check against the official portal.</div>
+</section>
+<section class="panel">
+<h2>Your achievement list</h2>
+<p class="sub">The category choices follow the categories shown in NUS Medicine's sample CCA list. They are not a required set of ten categories; you do not need one achievement in every category.</p>
+<div id="items" class="items"></div>
+</section>
+<section class="panel">
+<h2>Final submission check</h2>
+<p class="sub">The achievements list is only one part of the Medicine portfolio. Use the official instructions for your application year and qualification.</p>
+<div id="checklist">
+<label class="checkrow"><input type="checkbox" data-check="dates"> I checked that activities and dates are accurate and fall within the relevant period.</label>
+<label class="checkrow"><input type="checkbox" data-check="proof"> I can support important claims with records or evidence where appropriate.</label>
+<label class="checkrow"><input type="checkbox" data-check="statement"> I prepared a personal statement (official portfolio page states a 500-word limit).</label>
+<label class="checkrow"><input type="checkbox" data-check="testimonial"> I arranged the official school testimonial.</label>
+<label class="checkrow"><input type="checkbox" data-check="referees"> I nominated two referees who know me well and are not related to me.</label>
+<label class="checkrow"><input type="checkbox" data-check="route"> I confirmed the correct application route, portal and deadline for my applicant category.</label>
+</div>
+<p class="hint" id="checkProgress">0 of 6 final checks completed.</p>
+</section>
+<p class="footer">Privacy: entries are saved in this browser on this device using local storage. Export a backup regularly. This version has no account, cloud sync or server upload. Do not enter sensitive personal or medical information.</p>
+<p class="footer links">Official references: <a href="https://medicine.nus.edu.sg/prospective-students/medicine-portfolio/" target="_blank" rel="noopener">Medicine Portfolio</a> · <a href="https://medicine.nus.edu.sg/prospective-students/how-to-apply/" target="_blank" rel="noopener">How to Apply</a> · <a href="https://medicine.nus.edu.sg/prospective-students/excellence-beyond-academics-scheme-ebas/" target="_blank" rel="noopener">EBAS</a></p>
+</main>
+<script>
+(function(){
+'use strict';
+const KEY='nusmedicine-top10-v1';
+const categories=['Awards','Sports','School CCA','Community Involvement','Performance / Production','National Service','Research','Others'];
+const blank=()=>({title:'',category:'',start:'',end:'',description:'',award:'',appointment:'',organisation:'',evidence:'',ready:false});
+let data=Array.from({length:10},blank);
+let checks={};
+const $=id=>document.getElementById(id);
+function load(){try{const raw=localStorage.getItem(KEY);if(raw){const saved=JSON.parse(raw);if(Array.isArray(saved.data))data=data.map((x,i)=>Object.assign(x,saved.data[i]||{}));checks=saved.checks||{};}}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({data,checks,updatedAt:new Date().toISOString()}));}catch(e){alert('This browser could not save your changes. Please export a backup.');}}
+function escapeHtml(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function isComplete(x){return Boolean(x.title.trim()&&x.category&&x.start&&x.end&&x.description.trim()&&x.organisation.trim());}
+function render(){
+$('items').innerHTML=data.map((x,i)=>'<article class="item"><div class="itemhead"><h3><span class="num">'+String(i+1).padStart(2,'0')+'</span>Achievement '+(i+1)+'</h3><span class="status '+(x.ready&&isComplete(x)?'ready':'')+'">'+(x.ready&&isComplete(x)?'READY':isComplete(x)?'DETAILS ADDED':'IN PROGRESS')+'</span></div><div class="fields">'+
+field(i,'title','Activity / achievement title','text','e.g. Community project, award, CCA role','full')+
+'<div class="field"><label for="category-'+i+'">Category</label><select id="category-'+i+'" data-i="'+i+'" data-k="category"><option value="">Select category</option>'+categories.map(c=>'<option '+(x.category===c?'selected':'')+'>'+c+'</option>').join('')+'</select></div>'+
+field(i,'start','Start date (MM/YY)','text','e.g. 01/24')+field(i,'end','End date (MM/YY)','text','e.g. 11/25')+
+field(i,'description','Brief description','textarea','What did you do? What was your contribution?','full')+
+field(i,'award','Award / achievement','text','Award, result or outcome (if any)')+
+field(i,'appointment','Appointment / role','text','Your role (if any)')+
+field(i,'organisation','Organisation / event','text','School, organisation or event','full')+
+field(i,'evidence','Evidence / reflection note','textarea','Certificate, link, record, outcome or what you learned','full')+
+'</div><label class="checkrow"><input type="checkbox" data-i="'+i+'" data-k="ready" '+(x.ready?'checked':'')+'> Mark this entry ready for final review</label><p class="hint">Required for a complete draft: title, category, dates, brief description and organisation/event. This is a planning check, not an official NUS scoring rule.</p></article>').join('');
+document.querySelectorAll('[data-i][data-k]').forEach(el=>{el.addEventListener('change',()=>{const i=Number(el.dataset.i),k=el.dataset.k;data[i][k]=k==='ready'?el.checked:el.value;save();renderStats();updateStatus(i);});if(el.tagName==='INPUT'||el.tagName==='TEXTAREA'){el.addEventListener('input',()=>{data[Number(el.dataset.i)][el.dataset.k]=el.value;save();renderStats();updateStatus(Number(el.dataset.i));});}});
+document.querySelectorAll('[data-check]').forEach(el=>{el.checked=!!checks[el.dataset.check];el.addEventListener('change',()=>{checks[el.dataset.check]=el.checked;save();renderChecks();});});
+renderStats();renderChecks();
+}
+function field(i,k,label,type,placeholder,cls){return '<div class="field '+(cls||'')+'"><label for="'+k+'-'+i+'">'+label+'</label>'+(type==='textarea'?'<textarea id="'+k+'-'+i+'" data-i="'+i+'" data-k="'+k+'" placeholder="'+placeholder+'">'+escapeHtml(data[i][k])+'</textarea>':'<input id="'+k+'-'+i+'" data-i="'+i+'" data-k="'+k+'" type="'+type+'" value="'+escapeHtml(data[i][k])+'" placeholder="'+placeholder+'">')+'</div>';}
+function updateStatus(i){const el=document.querySelectorAll('.item')[i];if(!el)return;const x=data[i],s=el.querySelector('.status');s.className='status '+(x.ready&&isComplete(x)?'ready':'');s.textContent=x.ready&&isComplete(x)?'READY':isComplete(x)?'DETAILS ADDED':'IN PROGRESS';}
+function renderStats(){const complete=data.filter(isComplete).length,ready=data.filter(x=>x.ready&&isComplete(x)).length,ev=data.filter(x=>x.evidence.trim()).length;$('count').textContent=complete+' / 10';$('ready').textContent=ready+' / 10';$('evidence').textContent=ev;$('bar').style.width=(complete*10)+'%';}
+function renderChecks(){const n=Object.values(checks).filter(Boolean).length;$('checkProgress').textContent=n+' of 6 final checks completed.';}
+function download(name,content,type){const blob=new Blob([content],{type:type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);}
+$('export').addEventListener('click',()=>download('nus-medicine-top10-backup.json',JSON.stringify({data,checks,exportedAt:new Date().toISOString()},null,2),'application/json'));
+$('csv').addEventListener('click',()=>{const cols=['title','category','start','end','description','award','appointment','organisation','evidence','ready'];const quote=v=>'"'+String(v||'').replace(/"/g,'""')+'"';download('nus-medicine-top10.csv',[cols.join(','),...data.map(x=>cols.map(k=>quote(x[k])).join(','))].join('\r\n'),'text/csv;charset=utf-8;');});
+$('print').addEventListener('click',()=>window.print());
+$('reset').addEventListener('click',()=>{if(confirm('Clear all 10 entries and final checks from this browser? Export a backup first if needed.')){data=Array.from({length:10},blank);checks={};save();render();}});
+load();render();
+})();
+</script>
+</body>
+</html>
