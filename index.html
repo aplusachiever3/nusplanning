@@ -61,11 +61,11 @@
 'use strict';
 const KEY='nusmedicine-top10-v1';
 const categories=['Awards','Sports','School CCA','Community Involvement','Performance / Production','National Service','Research','Others'];
-const blank=()=>({title:'',category:'',start:'',end:'',description:'',award:'',appointment:'',organisation:'',evidence:'',attachments:[],ready:false});
+const blank=()=>({title:'',category:'',start:'',end:'',description:'',award:'',appointment:'',organisation:'',participationLevel:'',evidence:'',attachments:[],ready:false});
 let data=Array.from({length:10},blank);
 let checks={};
 const $=id=>document.getElementById(id);
-function load(){try{const raw=localStorage.getItem(KEY);if(raw){const saved=JSON.parse(raw);if(Array.isArray(saved.data))data=data.map((x,i)=>{const item=Object.assign(x,saved.data[i]||{});['title','category','start','end','description','award','appointment','organisation','evidence'].forEach(k=>{if(item[k]===null||item[k]===undefined)item[k]='';else item[k]=String(item[k]);});if(!Array.isArray(item.attachments))item.attachments=[];item.ready=!!item.ready;return item;});checks=saved.checks&&typeof saved.checks==='object'?saved.checks:{};}}catch(e){console.warn('Saved planner data could not be loaded.',e);}}
+function load(){try{const raw=localStorage.getItem(KEY);if(raw){const saved=JSON.parse(raw);if(Array.isArray(saved.data))data=data.map((x,i)=>{const item=Object.assign(x,saved.data[i]||{});['title','category','start','end','description','award','appointment','organisation','participationLevel','evidence'].forEach(k=>{if(item[k]===null||item[k]===undefined)item[k]='';else item[k]=String(item[k]);});if(!Array.isArray(item.attachments))item.attachments=[];item.ready=!!item.ready;return item;});checks=saved.checks&&typeof saved.checks==='object'?saved.checks:{};}}catch(e){console.warn('Saved planner data could not be loaded.',e);}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({data,checks,updatedAt:new Date().toISOString()}));}catch(e){alert('This browser could not save your changes. Please export a backup.');}}
 function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(ch){return ch==='&'?'&amp;':ch==='<'?'&lt;':ch==='>'?'&gt;':ch==='"'?'&quot;':'&#39;';});}
 function isComplete(x){return Boolean(x.title.trim()&&x.category&&x.start&&x.end&&x.description.trim()&&x.organisation.trim());}
@@ -76,8 +76,9 @@ field(i,'title','Activity / achievement title','text','e.g. Community project, a
 field(i,'start','Start date (MM/YY)','text','e.g. 01/24')+field(i,'end','End date (MM/YY)','text','e.g. 11/25')+
 field(i,'description','Brief description','textarea','What did you do? What was your contribution?','full')+
 field(i,'award','Award / achievement','text','Award, result or outcome (if any)')+
-field(i,'appointment','Appointment / role','text','Your role (if any)')+
-field(i,'organisation','Organisation / event','text','School, organisation or event','full')+
+field(i,'appointment','Your Role','text','e.g. Participant, Team Captain, Committee Member')+
+field(i,'organisation','Organisation / Event','text','e.g. school, organisation, competition or programme','full')+
+'<div class="field full"><label for="participationLevel-'+i+'">Participation Level</label><select id="participationLevel-'+i+'" data-i="'+i+'" data-k="participationLevel"><option value="">Select level (optional)</option>'+[['School / Class','School / Class'],['Inter-school','Inter-school'],['Zonal / Regional','Zonal / Regional'],['National','National'],['International','International'],['Community / Organisation','Community / Organisation'],['Other / Not applicable','Other / Not applicable']].map(o=>'<option value="'+o[0]+'" '+(x.participationLevel===o[0]?'selected':'')+'>'+o[1]+'</option>').join('')+'</select><div class="hint">Choose the level that accurately describes this activity. Select Other / Not applicable if no level fits.</div></div>'+
 field(i,'evidence','Evidence / reflection note','textarea','Write a note, add a link, or reflect on what you learned','full')+'<div class="field full"><label for="files-'+i+'">Upload supporting attachments</label><div class="attachments"><input id="files-'+i+'" type="file" multiple data-files-i="'+i+'" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.txt,.ppt,.pptx,.xls,.xlsx"><div class="hint">Attach certificates, photos, reports or other supporting records. Files are saved in this browser on this device.</div><div class="file-list" id="file-list-'+i+'"></div></div></div>'+
 '</div><label class="checkrow"><input type="checkbox" data-i="'+i+'" data-k="ready" '+(x.ready?'checked':'')+'> Mark this entry ready for final review</label><p class="hint">Required for a complete draft: title, category, dates, brief description and organisation/event. This is a planning check, not an official NUS scoring rule.</p></article>').join('');
 data.forEach((x,i)=>renderAttachments(i));
@@ -99,7 +100,7 @@ function renderStats(){const complete=data.filter(isComplete).length,ready=data.
 function renderChecks(){const n=Object.values(checks).filter(Boolean).length;$('checkProgress').textContent=n+' of 6 final checks completed.';}
 function download(name,content,type){const blob=new Blob([content],{type:type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);}
 $('export').addEventListener('click',async()=>{const backup={data,checks,exportedAt:new Date().toISOString(),attachmentNote:'Attachments are stored separately in this browser and are not included in this JSON backup. Download attached files individually before moving to another device.'};download('nus-medicine-top10-backup.json',JSON.stringify(backup,null,2),'application/json');});
-$('csv').addEventListener('click',()=>{const cols=['title','category','start','end','description','award','appointment','organisation','evidence','ready'];const quote=v=>'"'+String(v||'').replace(/"/g,'""')+'"';download('nus-medicine-top10.csv',[cols.join(','),...data.map(x=>cols.map(k=>quote(x[k])).join(','))].join(String.fromCharCode(13,10)),'text/csv;charset=utf-8;');});
+$('csv').addEventListener('click',()=>{const cols=['title','category','start','end','description','award','appointment','organisation','participationLevel','evidence','ready'];const quote=v=>'"'+String(v||'').replace(/"/g,'""')+'"';download('nus-medicine-top10.csv',[cols.join(','),...data.map(x=>cols.map(k=>quote(x[k])).join(','))].join(String.fromCharCode(13,10)),'text/csv;charset=utf-8;');});
 $('print').addEventListener('click',()=>window.print());
 $('reset').addEventListener('click',()=>{if(confirm('Clear all 10 entries and final checks from this browser? Export a backup first if needed.')){data=Array.from({length:10},blank);checks={};save();render();}});
 load();render();
