@@ -157,7 +157,7 @@ function preparePrint(){
     if(control.tagName==='TEXTAREA'){
      const printValue=document.createElement('div');
      printValue.className='print-value'+(control.value.length>500?' print-long-text':'');
-     control.value.split(/\\n{2,}/).forEach(paragraph=>{
+     control.value.split(/\n{2,}/).forEach(paragraph=>{
       const block=document.createElement('div');
       block.className='print-paragraph';
       block.textContent=paragraph;
