@@ -1,0 +1,23 @@
+name: Smart Review V1 Tests
+
+on:
+  push:
+    branches:
+      - feature/smart-review-v1
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  node-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run Smart Review tests
+        run: node --test smart-review-v1.test.mjs
