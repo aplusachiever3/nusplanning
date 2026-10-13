@@ -147,6 +147,9 @@ Answers must be stored separately from the original description, with source `us
 ## 5. Acceptance test status
 
 - Recognition tests and engine-only SR tests are defined in `smart-review-v1.test.mjs`.
-- SR-016, SR-024, SR-026–SR-034, and SR-035 require persistence, attachment, backup, print or UI integration and remain blocked until those components and a browser-level harness exist.
-- A skipped test is **BLOCKED**, not PASS.
-- The rule engine is a first implementation, not yet release-ready. Browser integration and real Node test execution remain required.
+- Browser-level acceptance tests are defined in `smart-review-browser.test.mjs` and run with Chromium in GitHub Actions.
+- Current automated Chromium coverage: review persistence across reload; stale marking after content edits; predecessor review linking; attachment blob storage and review metadata; CSV and JSON backup downloads; print-mode hiding of the Smart Review panel and empty achievement cards.
+- Latest successful run: [GitHub Actions](https://github.com/aplusachiever3/nusplanning/actions/runs/38329419615). The Node suite reports 55 tests, 43 passed, 0 failed, and 12 skipped; the browser suite reports 5 passed, 0 failed.
+- The 12 skipped Node tests remain explicit blocked placeholders and are **not** counted as passing. Remaining gaps include attachment changes after a saved review, reset/history behavior, deeper repeated-interaction regression, actual printed/PDF layout inspection, and cross-browser/mobile manual acceptance.
+- The current planner supports JSON export but has no JSON import UI; backup compatibility is therefore limited to preserving the existing export format and existing stored planner data.
+- The rule engine remains a first implementation, not release-ready. Passing headless Chromium tests does not replace manual review in the target browsers and viewport sizes.
