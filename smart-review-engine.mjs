@@ -343,3 +343,15 @@ function structuredCloneSafe(value) {
   if (typeof structuredClone === "function") return structuredClone(value);
   return JSON.parse(JSON.stringify(value ?? {}));
 }
+
+
+/** Aggregate five dimension scores under the V1.0 null-total contract. */
+export function aggregateDimensionScores(scores) {
+  if (!Array.isArray(scores) || scores.length !== 5) {
+    return { status: "error", totalScore: null, reasonCode: "FIVE_DIMENSIONS_REQUIRED" };
+  }
+  if (scores.some((s) => s === null || s === undefined || !Number.isInteger(s) || s < 0 || s > 4)) {
+    return { status: "partial", totalScore: null, reasonCode: "DIMENSION_NEEDS_INFO" };
+  }
+  return { status: "completed", totalScore: scores.reduce((sum, score) => sum + score, 0) };
+}
