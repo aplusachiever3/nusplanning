@@ -362,3 +362,23 @@ test("BR-011 failed review-history storage write preserves the previous record a
     await context.close();
   }
 });
+
+
+test("BR-012 print-to-PDF produces a non-empty A4 document with print styles applied", async () => {
+  const { context, page } = await openCleanPage();
+  try {
+    await fillFirstEntry(page, "PDF Layout Acceptance Entry");
+    await page.locator("#evidence-0").fill("A concise evidence note for the printed portfolio.");
+    await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
+    await page.emulateMedia({ media: "print" });
+    const panelDisplay = await page.locator("#smartReviewPanel").evaluate(el => getComputedStyle(el).display);
+    const emptyCardDisplay = await page.locator('.item[data-print-empty="true"]').first().evaluate(el => getComputedStyle(el).display);
+    assert.equal(panelDisplay, "none");
+    assert.equal(emptyCardDisplay, "none");
+    const pdf = await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: true });
+    assert.equal(pdf.subarray(0, 5).toString("ascii"), "%PDF-");
+    assert.ok(pdf.length > 1500, `Unexpectedly small PDF: ${pdf.length} bytes`);
+  } finally {
+    await context.close();
+  }
+});
