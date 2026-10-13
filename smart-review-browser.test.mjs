@@ -332,3 +332,33 @@ test("BR-010 repeated review panel interactions do not duplicate handlers or mut
     await context.close();
   }
 });
+
+
+test("BR-011 failed review-history storage write preserves the previous record and reports failure", async () => {
+  const { context, page } = await openCleanPage();
+  try {
+    await fillFirstEntry(page, "Storage Failure Regression Entry");
+    await page.locator("#srRun").click();
+    await page.getByText("Review saved for 1 non-empty entry.").waitFor();
+    const before = await page.evaluate(() => JSON.parse(localStorage.getItem("nusmedicine-smart-review-history-v1"))[0]);
+    await page.locator("#description-0").fill("Updated text before simulating a history storage failure.");
+    await page.evaluate(() => {
+      const originalSetItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (key, value) {
+        if (key === "nusmedicine-smart-review-history-v1" && window.__failReviewWrite) {
+          throw new DOMException("Simulated quota failure", "QuotaExceededError");
+        }
+        return originalSetItem.call(this, key, value);
+      };
+      window.__failReviewWrite = true;
+    });
+    await page.locator("#srRun").click();
+    await page.getByText(/Could not save the review\. Existing review history was retained\./).waitFor();
+    const after = await page.evaluate(() => JSON.parse(localStorage.getItem("nusmedicine-smart-review-history-v1")));
+    assert.equal(after.length, 1);
+    assert.equal(after[0].reviewId, before.reviewId);
+    assert.equal(after[0].inputSnapshot.description, before.inputSnapshot.description);
+  } finally {
+    await context.close();
+  }
+});
