@@ -1,10 +1,14 @@
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium } from "playwright";
+import { chromium, firefox, webkit } from "playwright";
+
+const browserName = process.env.BROWSER || "chromium";
+const browserTypes = { chromium, firefox, webkit };
+if (!browserTypes[browserName]) throw new Error(`Unsupported BROWSER=${browserName}`);
 
 const root = resolve(fileURLToPath(new URL(".", import.meta.url)));
 let server;
@@ -38,7 +42,7 @@ before(async () => {
   });
   await new Promise(resolveListen => server.listen(0, "127.0.0.1", resolveListen));
   origin = `http://127.0.0.1:${server.address().port}`;
-  browser = await chromium.launch({ headless: true });
+  browser = await browserTypes[browserName].launch({ headless: true });
 });
 
 after(async () => {
@@ -364,10 +368,12 @@ test("BR-011 failed review-history storage write preserves the previous record a
 });
 
 
-test("BR-012 print-to-PDF produces a non-empty A4 document with print styles applied", async () => {
+if (browserName === "chromium") test("BR-012 print-to-PDF produces an inspectable A4 artifact with long-text coverage", async () => {
   const { context, page } = await openCleanPage();
   try {
     await fillFirstEntry(page, "PDF Layout Acceptance Entry");
+    const longDescription = Array.from({ length: 18 }, (_, i) => `Project log ${i + 1}: I documented the planning, testing, results, limitations and next steps for this activity. The team compared multiple approaches, recorded observations in a shared log, discussed unexpected results, and revised the process before the next session. This paragraph intentionally tests long-text wrapping and page breaks in the printed portfolio.`).join("\n\n");
+    await page.locator("#description-0").fill(longDescription);
     await page.locator("#evidence-0").fill("A concise evidence note for the printed portfolio.");
     await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
     await page.emulateMedia({ media: "print" });
@@ -378,6 +384,9 @@ test("BR-012 print-to-PDF produces a non-empty A4 document with print styles app
     const pdf = await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: true });
     assert.equal(pdf.subarray(0, 5).toString("ascii"), "%PDF-");
     assert.ok(pdf.length > 1500, `Unexpectedly small PDF: ${pdf.length} bytes`);
+    await mkdir(resolve(root, "artifacts"), { recursive: true });
+    await writeFile(resolve(root, "artifacts/smart-review-acceptance.pdf"), pdf);
+    await writeFile(resolve(root, "artifacts/smart-review-acceptance-metadata.json"), JSON.stringify({ browser: browserName, viewport: page.viewportSize(), pdfBytes: pdf.length, fixtureCharacters: longDescription.length, format: "A4" }, null, 2));
   } finally {
     await context.close();
   }
