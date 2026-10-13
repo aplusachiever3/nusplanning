@@ -127,6 +127,43 @@ test("SR-014 missing dates create a gap, not an empty achievement", () => {
   assert.notEqual(r.status, "empty");
   assert.ok(r.scores.contentCompleteness.missingRules.includes("D1-05"));
 });
+test("SR-014B contradictory dates require clarification and null the total", () => {
+  const r = evaluateAchievement({ title:"Project", category:"Research", start:"2026-03-10", end:"2026-02-10", description:"I tested three prototypes.", organisation:"School project" });
+  assert.equal(r.scores.contentCompleteness.status, "needs-info");
+  assert.equal(r.scores.contentCompleteness.score, null);
+  assert.equal(r.totalScore, null);
+});
+test("SR-020B vague text does not become a fabricated zero for outcomes or reflection", () => {
+  const r = evaluateAchievement({ description:"Handled the thing like before." });
+  assert.equal(r.scores.outcomesAndImpact.status, "needs-info");
+  assert.equal(r.scores.outcomesAndImpact.score, null);
+  assert.equal(r.scores.reflectionAndGrowth.status, "needs-info");
+  assert.equal(r.scores.reflectionAndGrowth.score, null);
+});
+test("D2 top anchor requires role, action, decision signal and personal-team distinction", () => {
+  const r = evaluateAchievement({
+    title:"Club project", appointment:"Team Leader",
+    description:"As team leader, I coordinated meetings because I was responsible for planning the agenda while my teammates handled the budget."
+  });
+  assert.equal(r.scores.personalContribution.score, 4);
+  assert.ok(r.scores.personalContribution.matchedRules.includes("D2-05"));
+  assert.ok(r.scores.personalContribution.matchedRules.includes("D2-06"));
+});
+test("D3 top anchor requires a contextualised metric, scope and action-outcome link", () => {
+  const r = evaluateAchievement({
+    title:"Sign-up project",
+    description:"Attendance increased from 20 to 28 after we changed the sign-up process for 30 classmates."
+  });
+  assert.equal(r.scores.outcomesAndImpact.score, 4);
+});
+test("D5 top anchor requires an identifiable evidence type, route and activity link", () => {
+  const r = evaluateAchievement({
+    title:"Prototype project",
+    evidence:"The prototype photos and test log are saved in our project folder for this project."
+  });
+  assert.equal(r.scores.evidenceAndVerifiability.score, 4);
+  assert.notEqual(r.authenticityVerified, true);
+});
 test("SR-015 repeated identical input gives deterministic substantive output", () => {
   const input = { title:"Club", description:"I created a registration spreadsheet." };
   const a = evaluateAchievement(input), b = evaluateAchievement(input);
