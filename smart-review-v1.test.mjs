@@ -203,7 +203,6 @@ test("SR-023 engine failure contract returns error, not a completed score", () =
   assert.ok(["empty","error"].includes(r.status));
   assert.notEqual(r.status, "completed");
 });
-test("SR-024 rule-version reassessment creates a new review and preserves old history", { skip:"BLOCKED: browser-level localStorage persistence harness is not implemented" }, () => {});
 test("SR-025 evaluation does not mutate the source object", () => {
   const input = Object.freeze({ title:"Club", description:"I created a spreadsheet." });
   const before = JSON.stringify(input);
