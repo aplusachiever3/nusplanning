@@ -170,7 +170,7 @@ test("SR-015 repeated identical input gives deterministic substantive output", (
   const strip = x => JSON.stringify({status:x.status,scores:x.scores,totalScore:x.totalScore,suggestions:x.suggestions});
   assert.equal(strip(a), strip(b));
 });
-test("SR-016 saved review survives reload", { skip:"BLOCKED: review-history persistence is not integrated yet" }, () => {});
+test("SR-016 saved review survives reload", { skip:"BLOCKED: browser-level localStorage persistence harness is not implemented" }, () => {});
 test("SR-017 ready flag does not affect scores", () => {
   const a = evaluateAchievement({ title:"Club", description:"I created a registration spreadsheet.", ready:false });
   const b = evaluateAchievement({ title:"Club", description:"I created a registration spreadsheet.", ready:true });
@@ -204,20 +204,20 @@ test("SR-023 engine failure contract returns error, not a completed score", () =
   assert.ok(["empty","error"].includes(r.status));
   assert.notEqual(r.status, "completed");
 });
-test("SR-024 rule-version reassessment creates a new review and preserves old history", { skip:"BLOCKED: review-history persistence is not integrated yet" }, () => {});
+test("SR-024 rule-version reassessment creates a new review and preserves old history", { skip:"BLOCKED: browser-level localStorage persistence harness is not implemented" }, () => {});
 test("SR-025 evaluation does not mutate the source object", () => {
   const input = Object.freeze({ title:"Club", description:"I created a spreadsheet." });
   const before = JSON.stringify(input);
   evaluateAchievement(input);
   assert.equal(JSON.stringify(input), before);
 });
-test("SR-026 content edits mark old reviews stale", { skip:"BLOCKED: review-history persistence is not integrated yet" }, () => {});
-test("SR-027 new review links to previous review", { skip:"BLOCKED: review-history persistence is not integrated yet" }, () => {});
-test("SR-028 review snapshot preserves input and rule versions", { skip:"BLOCKED: review-history persistence is not integrated yet" }, () => {});
-test("SR-029 attachment changes preserve blobs and stale dependent reviews", { skip:"BLOCKED: IndexedDB review dependency integration is not implemented" }, () => {});
-test("SR-030 failed snapshot save does not claim success", { skip:"BLOCKED: review-history persistence is not integrated yet" }, () => {});
+test("SR-026 content edits mark old reviews stale", { skip:"BLOCKED: browser-level localStorage persistence harness is not implemented" }, () => {});
+test("SR-027 new review links to previous review", { skip:"BLOCKED: browser-level localStorage persistence harness is not implemented" }, () => {});
+test("SR-028 review snapshot preserves input and rule versions", { skip:"BLOCKED: browser-level localStorage persistence harness is not implemented" }, () => {});
+test("SR-029 attachment changes preserve blobs and stale dependent reviews", { skip:"BLOCKED: browser-level IndexedDB attachment regression harness is not implemented" }, () => {});
+test("SR-030 failed snapshot save does not claim success", { skip:"BLOCKED: browser-level localStorage persistence harness is not implemented" }, () => {});
 test("SR-031 legacy backup without Smart Review fields remains compatible", { skip:"BLOCKED: end-to-end backup import/restore test harness is not implemented" }, () => {});
-test("SR-032 clearing current entries does not silently delete review history", { skip:"BLOCKED: review-history persistence is not integrated yet" }, () => {});
+test("SR-032 clearing current entries does not silently delete review history", { skip:"BLOCKED: browser-level localStorage persistence harness is not implemented" }, () => {});
 test("SR-033 CSV export remains unchanged", { skip:"BLOCKED: browser-level regression harness is not implemented" }, () => {});
 test("SR-034 print output remains unchanged", { skip:"BLOCKED: browser-level print regression harness is not implemented" }, () => {});
-test("SR-035 opening and closing the review panel does not duplicate listeners or overwrite edits", { skip:"BLOCKED: review UI is not integrated yet" }, () => {});
+test("SR-035 opening and closing the review panel does not duplicate listeners or overwrite edits", { skip:"BLOCKED: browser-level UI interaction harness is not implemented" }, () => {});
