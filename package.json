@@ -1,0 +1,13 @@
+{
+  "name": "nusplanning-smart-review",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test smart-review-v1.test.mjs",
+    "test:browser": "node --test smart-review-browser.test.mjs",
+    "test:all": "npm test && npm run test:browser"
+  },
+  "devDependencies": {
+    "playwright": "^1.55.0"
+  }
+}
