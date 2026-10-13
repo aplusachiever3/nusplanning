@@ -217,8 +217,8 @@ function init() {
   installStyles();
   installPanel();
   renderHistory();
-  document.addEventListener("input", () => { updateStaleFlags(); renderHistory(); }, true);
-  document.addEventListener("change", () => { updateStaleFlags(); renderHistory(); }, true);
+  document.addEventListener("input", () => { updateStaleFlags(); renderHistory(); });
+  document.addEventListener("change", () => { updateStaleFlags(); renderHistory(); });
   const items = $("items");
   if (items && "MutationObserver" in window) {
     const observer = new MutationObserver(() => {
