@@ -202,7 +202,9 @@ test("BR-005 print media hides Smart Review and empty achievement cards", async 
   try {
     await fillFirstEntry(page, "Print Acceptance Entry");
     await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
+    assert.equal(await page.locator("#description-0 + .print-value").evaluate(el => getComputedStyle(el).display), "none");
     await page.emulateMedia({ media: "print" });
+    assert.equal(await page.locator("#description-0 + .print-value").evaluate(el => getComputedStyle(el).display), "block");
     const panelDisplay = await page.locator("#smartReviewPanel").evaluate(el => getComputedStyle(el).display);
     assert.equal(panelDisplay, "none");
     assert.equal(await page.locator('.item[data-print-empty="false"]').count(), 1);
