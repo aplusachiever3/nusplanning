@@ -2,6 +2,25 @@ import { evaluateAchievement, SMART_REVIEW_CONFIG } from "./smart-review-engine.
 
 const STORAGE_KEY = "nusmedicine-smart-review-history-v1";
 const FIELD_KEYS = ["title","category","start","end","description","award","appointment","organisation","participationLevel","evidence"];
+const CLARIFICATION_QUESTIONS = {
+  TITLE_MISSING: "What is a short, recognisable title for this experience?",
+  ACTIVITY_CONTEXT_MISSING: "What did the activity involve?",
+  BACKGROUND_MISSING: "What was the context or audience?",
+  TIME_RANGE_UNCLEAR: "When did the activity start and end?",
+  DATE_CONTRADICTION_NEEDS_CLARIFICATION: "Please clarify the start and end dates before relying on this review.",
+  ROLE_ONLY: "What were you personally responsible for?",
+  PERSONAL_ACTION_MISSING: "What specific action did you take?",
+  SUBJECT_UNCLEAR: "Was this action yours or someone else's?",
+  RESPONSIBILITY_SCOPE_UNCLEAR: "Which parts did you own versus the team?",
+  OUTCOME_CONTEXT_MISSING: "What result or output followed?",
+  OUTCOME_SCOPE_UNCLEAR: "Who or what was affected, and to what extent?",
+  METRIC_CONTEXT_MAY_BE_NEEDED: "What are the baseline, measure and scope for this number?",
+  REFLECTION_GENERIC: "What specifically did you learn?",
+  GROWTH_CHANGE_MISSING: "What changed in your approach or judgement?",
+  APPLICATION_MISSING: "How did you apply this learning afterwards?",
+  EVIDENCE_ROUTE_MISSING: "What record or source could support this experience?",
+  ATTACHMENT_NOT_AUTHENTICITY_VERIFIED: "What claim does this attachment support? Its authenticity has not been verified by the app."
+};
 const DIMENSION_LABELS = {
   contentCompleteness: "Content completeness",
   personalContribution: "Personal contribution",
@@ -79,7 +98,15 @@ function dimensionHtml(key, dimension) {
   const rules = dimension.matchedRules?.length ? `<div class="sr-meta"><strong>Rules:</strong> ${escapeHtml(dimension.matchedRules.join(", "))}</div>` : "";
   const reasons = dimension.reasonCodes?.length ? `<div class="sr-meta"><strong>Reasons:</strong> ${escapeHtml(dimension.reasonCodes.join(", "))}</div>` : "";
   const suggestions = dimension.suggestions?.length ? `<ul>${dimension.suggestions.map(s => `<li>${escapeHtml(s)}</li>`).join("")}</ul>` : "";
-  return `<div class="sr-dimension"><div class="sr-dimension-head"><strong>${escapeHtml(DIMENSION_LABELS[key] || key)}</strong><span>${escapeHtml(score)}</span></div>${rules}${reasons}${suggestions}</div>`;
+  const codes = [...(dimension.reasonCodes || []), ...(dimension.missingRules || [])];
+  const questions = [...new Set(codes.map(code => CLARIFICATION_QUESTIONS[code] || ({
+    "D1-01":"What is a short, recognisable title for this experience?",
+    "D1-02":"What did the activity involve?",
+    "D1-03":"What was the context or audience?",
+    "D1-05":"When did the activity start and end?"
+  })[code]).filter(Boolean))];
+  const questionHtml = questions.length ? `<div class="sr-clarification"><strong>Clarifying question:</strong><ul>${questions.map(q => `<li>${escapeHtml(q)}</li>`).join("")}</ul></div>` : "";
+  return `<div class="sr-dimension"><div class="sr-dimension-head"><strong>${escapeHtml(DIMENSION_LABELS[key] || key)}</strong><span>${escapeHtml(score)}</span></div>${rules}${reasons}${questionHtml}${suggestions}</div>`;
 }
 function renderHistory() {
   const host = $("srResults");
@@ -156,7 +183,7 @@ function installStyles() {
     #smartReviewPanel .sr-dimension{border:1px solid #e4ebe7;border-radius:8px;padding:10px;min-width:0}
     #smartReviewPanel .sr-dimension-head{display:flex;justify-content:space-between;gap:8px;font-size:13px}
     #smartReviewPanel .sr-dimension-head span{font-weight:800;white-space:nowrap}
-    #smartReviewPanel .sr-meta{font-size:11px;color:#61736e;overflow-wrap:anywhere;margin:6px 0}
+    #smartReviewPanel .sr-clarification{margin-top:8px;padding:8px;background:#f7f9f7;border-radius:6px;font-size:12px}\n    #smartReviewPanel .sr-clarification ul{margin:5px 0 0;padding-left:18px}\n    #smartReviewPanel .sr-meta{font-size:11px;color:#61736e;overflow-wrap:anywhere;margin:6px 0}
     #smartReviewPanel .sr-dimension ul{padding-left:18px;font-size:12px;margin:8px 0 0}
     #smartReviewPanel .sr-empty{color:#61736e;font-size:13px}
     #smartReviewPanel details{margin-top:12px;font-size:12px}
