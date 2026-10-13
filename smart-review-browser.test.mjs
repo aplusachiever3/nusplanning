@@ -382,3 +382,72 @@ test("BR-012 print-to-PDF produces a non-empty A4 document with print styles app
     await context.close();
   }
 });
+
+
+test("BR-013 reassessing an older rubric version creates a new record and preserves the old one", async () => {
+  const entry = {
+    title: "Version migration acceptance entry",
+    category: "Research",
+    start: "01/25",
+    end: "06/25",
+    description: "I designed a water-filter prototype and tested three designs.",
+    award: "",
+    appointment: "Project member",
+    organisation: "School community project",
+    participationLevel: "",
+    evidence: "",
+    attachments: [],
+    ready: false
+  };
+  const oldSnapshot = {
+    title: entry.title,
+    category: entry.category,
+    start: entry.start,
+    end: entry.end,
+    description: entry.description,
+    award: entry.award,
+    appointment: entry.appointment,
+    organisation: entry.organisation,
+    participationLevel: entry.participationLevel,
+    evidence: entry.evidence,
+    attachments: []
+  };
+  const oldRecord = {
+    reviewId: "previous-rubric-review",
+    achievementId: "entry-1",
+    entryIndex: 0,
+    contentRevision: "1",
+    rubricVersion: "0.9.0",
+    ruleSetVersion: "0.9.0",
+    engineVersion: "0.9.0",
+    reviewedAt: "2025-01-01T00:00:00.000Z",
+    inputSnapshot: oldSnapshot,
+    status: "partial",
+    scores: {},
+    totalScore: null,
+    suggestions: [],
+    previousReviewId: null,
+    stale: false
+  };
+  const { context, page } = await openCleanPage({
+    planner: { data: [entry], checks: { dates: true }, updatedAt: "2025-01-01T00:00:00.000Z" },
+    history: [oldRecord]
+  });
+  try {
+    await page.locator("#srRun").click();
+    await page.getByText("Review saved for 1 non-empty entry.").waitFor();
+    const history = await page.evaluate(() => JSON.parse(localStorage.getItem("nusmedicine-smart-review-history-v1")));
+    assert.equal(history.length, 2);
+    assert.equal(history[0].reviewId, "previous-rubric-review");
+    assert.equal(history[0].rubricVersion, "0.9.0");
+    assert.equal(history[0].ruleSetVersion, "0.9.0");
+    assert.equal(history[0].engineVersion, "0.9.0");
+    assert.deepEqual(history[0].inputSnapshot, oldSnapshot);
+    assert.equal(history[1].previousReviewId, "previous-rubric-review");
+    assert.equal(history[1].rubricVersion, "1.0.0");
+    assert.equal(history[1].ruleSetVersion, "1.0.0");
+    assert.equal(history[1].engineVersion, "1.0.0");
+  } finally {
+    await context.close();
+  }
+});
