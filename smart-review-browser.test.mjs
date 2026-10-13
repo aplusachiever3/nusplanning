@@ -119,11 +119,27 @@ test("BR-003 uploaded attachment is stored in IndexedDB and linked as metadata",
   const { context, page } = await openCleanPage();
   try {
     await fillFirstEntry(page);
+    const uploadDiagnostics = { dialogs: [], pageErrors: [] };
+    page.on("dialog", async dialog => {
+      uploadDiagnostics.dialogs.push(dialog.message());
+      await dialog.dismiss();
+    });
+    page.on("pageerror", error => uploadDiagnostics.pageErrors.push(error.message));
     await page.locator("#files-0").setInputFiles({
       name: "project-notes.txt",
       mimeType: "text/plain",
       buffer: Buffer.from("Sample project notes for browser acceptance.")
     });
+    await page.waitForFunction(() => {
+      const planner = JSON.parse(localStorage.getItem("nusmedicine-top10-v1") || "{}");
+      return planner.data?.[0]?.attachments?.some(file => file.name === "project-notes.txt");
+    }, null, { timeout: 5000 }).catch(() => {});
+    const uploadState = await page.evaluate(() => ({
+      attachments: JSON.parse(localStorage.getItem("nusmedicine-top10-v1") || "{}").data?.[0]?.attachments || [],
+      fileListText: document.querySelector("#file-list-0")?.innerText || ""
+    }));
+    assert.ok(uploadState.attachments.some(file => file.name === "project-notes.txt"),
+      `Attachment upload failed in ${browserName}: state=${JSON.stringify(uploadState)}, dialogs=${JSON.stringify(uploadDiagnostics.dialogs)}, pageErrors=${JSON.stringify(uploadDiagnostics.pageErrors)}`);
     await page.getByText("project-notes.txt").waitFor();
     await page.waitForFunction(() => {
       const planner = JSON.parse(localStorage.getItem("nusmedicine-top10-v1") || "{}");
