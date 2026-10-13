@@ -52,7 +52,7 @@ export function recognizeText(field, value) {
   if (subjectAmbiguous) warnings.push({ code: "SUBJECT_AMBIGUOUS", matchedText: text, sourceField: field });
 
   if (field === "title" && text) add("TITLE_PRESENT");
-  if (PATTERNS.activity.test(text)) add("ACTIVITY_DETAIL_SIGNAL", negated ? "negative" : "positive");
+  if (isSpecificActivity(text)) add("ACTIVITY_DETAIL_SIGNAL", negated ? "negative" : "positive");
   if (PATTERNS.role.test(text)) add("ROLE_SIGNAL", negated ? "negative" : "positive");
   if (PATTERNS.firstPersonAction.test(text)) add("PERSONAL_ACTION_SIGNAL", negated ? "negative" : subjectAmbiguous ? "uncertain" : "positive");
   if (PATTERNS.outcome.test(text)) add("OUTCOME_SIGNAL", negated ? "negative" : "positive");
@@ -80,6 +80,12 @@ export function recognizeText(field, value) {
   return { signals, warnings, confidence };
 }
 
+function isSpecificActivity(text) {
+  const value = norm(text);
+  const genericOnly = /\\b(?:I|we) (?:did|attended|participated in) (?:many|lots of|various) activities\\b/i.test(value)
+    || /(?:我参加了很多活动|参加了很多活动|我做了很多事情|做了很多事情)/.test(value);
+  return !genericOnly && PATTERNS.activity.test(value);
+}
 function resultDimension(status, score = null, details = {}) {
   return { status, score, matchedRules: [], reasonCodes: [], missingRules: [], suggestions: [], ...details };
 }
@@ -113,7 +119,7 @@ export function evaluateAchievement(achievement = {}, options = {}) {
     const roleText = [a.appointment, a.participationLevel].map(norm).filter(Boolean).join(" ");
     const attachments = Array.isArray(a.attachments) ? a.attachments : [];
     const allText = [a.title,a.category,a.start,a.end,desc,a.award,a.appointment,a.organisation,a.participationLevel,evidence].map(norm).filter(Boolean).join(" ");
-    const hasActivity = PATTERNS.activity.test(desc);
+    const hasActivity = isSpecificActivity(desc);
     const hasAction = PATTERNS.firstPersonAction.test(desc) && !PATTERNS.negation.test(desc);
     const hasRole = nonEmpty(a.appointment) || PATTERNS.role.test(roleText);
     const hasOutcome = PATTERNS.outcome.test(desc) || PATTERNS.outcome.test(norm(a.award));
@@ -130,7 +136,7 @@ export function evaluateAchievement(achievement = {}, options = {}) {
     {
       const d = resultDimension("scored", 0);
       const title = nonEmpty(a.title), category = nonEmpty(a.category), organisation = nonEmpty(a.organisation);
-      const activity = hasActivity || nonEmpty(desc);
+      const activity = hasActivity;
       const role = hasRole || hasAction;
       const dateKnown = hasTime;
       if (title) addRule(d,"D1-01","TITLE_IDENTIFIABLE");
