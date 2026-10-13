@@ -284,7 +284,17 @@ export function evaluateAchievement(achievement = {}, options = {}) {
         d.reasonCodes.push("EVIDENCE_ROUTE_MISSING");
         d.suggestions.push("If available, note a record, work sample or person who could corroborate the experience. An upload is not mandatory.");
       }
-      if (attachments.length) { addRule(d,"D5-05","ATTACHMENT_METADATA_PRESENT"); addRule(d,"D5-06","ATTACHMENT_NOT_AUTHENTICITY_VERIFIED"); }\n      const strongEvidenceRoute = PATTERNS.evidenceType.test(evidence) && /\\b(?:saved|stored|published|available|kept|can confirm)\\b/i.test(evidence) && /\\b(?:project|activity|role|result|prototype|event)\\b/i.test(evidence);\n      if (strongEvidenceRoute && d.status === "scored") { d.score = 4; addRule(d,"D5-04","EVIDENCE_TO_ACTIVITY_LINK_SIGNAL"); }
+      if (attachments.length) {
+        addRule(d,"D5-05","ATTACHMENT_METADATA_PRESENT");
+        addRule(d,"D5-06","ATTACHMENT_NOT_AUTHENTICITY_VERIFIED");
+      }
+      const strongEvidenceRoute = PATTERNS.evidenceType.test(evidence)
+        && /\b(?:saved|stored|published|available|kept|can confirm)\b/i.test(evidence)
+        && /\b(?:project|activity|role|result|prototype|event)\b/i.test(evidence);
+      if (strongEvidenceRoute && d.status === "scored") {
+        d.score = 4;
+        addRule(d,"D5-04","EVIDENCE_TO_ACTIVITY_LINK_SIGNAL");
+      }
       d.matchedRules = unique(d.matchedRules); d.reasonCodes = unique(d.reasonCodes); d.suggestions = unique(d.suggestions);
       scores.evidenceAndVerifiability = d;
     }
