@@ -167,8 +167,12 @@ export function evaluateAchievement(achievement = {}, options = {}) {
       if (hasRole) addRule(d,"D2-01","ROLE_IDENTIFIABLE");
       if (hasAction) addRule(d,"D2-02","PERSONAL_ACTION_SIGNAL");
       if (hasAction && hasRole) addRule(d,"D2-03","ACTION_ROLE_LINK");
-      if (subjectAmbiguous) { d.reasonCodes.push("SUBJECT_UNCLEAR"); d.suggestions.push("Clarify which actions were yours and which were performed by other people."); }
-      else if (!hasAction) {
+      const personalTeamDistinction = /\b(?:my role|I was responsible for|I personally|I handled|while my teammates|my teammates handled|the team handled|I owned)\b/i.test(desc);
+      const decisionSignal = /\b(?:because|so that|in order to|decided|solved|adapted|resolved|negotiated|planned|coordinated)\b/i.test(desc);
+      if (subjectAmbiguous) {
+        d.reasonCodes.push("SUBJECT_UNCLEAR");
+        d.suggestions.push("Clarify which actions were yours and which were performed by other people.");
+      } else if (!hasAction) {
         d.reasonCodes.push(hasRole ? "ROLE_ONLY" : "PERSONAL_ACTION_MISSING");
         d.suggestions.push("Describe one specific action you personally took and what it involved.");
         if (nonEmpty(desc) || hasRole) {
@@ -177,13 +181,13 @@ export function evaluateAchievement(achievement = {}, options = {}) {
         }
       } else {
         d.status = "scored";
-        d.score = 2;
-        if (hasRole) d.score = 3;
-        if (hasAction && hasRole && /\b(?:because|so that|in order to|decided|solved|adapted|resolved|negotiated|planned|coordinated)\b|(?:因此|为了|决定|解决|调整|协调|规划)/i.test(desc)) {
-          d.score = 4; addRule(d,"D2-06","DECISION_OR_PROBLEM_SOLVING_SIGNAL");
-        }
+        d.score = hasRole ? 3 : 2;
         addRule(d,"D2-04","ACTION_SCOPE_SIGNAL");
-        if (/\b(?:I|my)\b|我/.test(desc)) addRule(d,"D2-05","PERSONAL_TEAM_DISTINCTION_SIGNAL");
+        if (personalTeamDistinction) addRule(d,"D2-05","PERSONAL_TEAM_DISTINCTION_SIGNAL");
+        if (decisionSignal) addRule(d,"D2-06","DECISION_OR_PROBLEM_SOLVING_SIGNAL");
+        if (hasRole && personalTeamDistinction && decisionSignal) d.score = 4;
+        else if (!hasRole) d.suggestions.push("Clarify the role or responsibility that your action belonged to.");
+        if (!personalTeamDistinction) d.suggestions.push("Distinguish your own contribution from the work done by the wider team.");
       }
       d.matchedRules = unique(d.matchedRules); d.reasonCodes = unique(d.reasonCodes); d.suggestions = unique(d.suggestions);
       scores.personalContribution = d;
@@ -192,23 +196,31 @@ export function evaluateAchievement(achievement = {}, options = {}) {
     // D3 — Outcomes and impact
     {
       const d = resultDimension("needs-info", null);
+      const metricComparison = /\b(?:rose|increased|grew|changed|went)\s+from\s+\d+\s+to\s+\d+\b/i.test(desc);
+      const actionOutcomeLink = /\bafter\s+(?:I|we|our team)\b/i.test(desc);
+      const impactScope = /\b(?:for\s+\d+|among|across|serving|reached|participants|students|community|classmates|visitors)\b/i.test(desc);
       if (hasOutcome && !genericOutcome) {
         d.status = "scored"; d.score = 2;
         addRule(d,"D3-01","OUTCOME_IDENTIFIABLE");
         addRule(d,"D3-04","ACTION_OUTCOME_TEXT_PRESENT");
-        if (PATTERNS.metric.test(desc) || PATTERNS.metric.test(norm(a.award))) {
+        if (PATTERNS.metric.test(desc) || metricComparison || PATTERNS.metric.test(norm(a.award))) {
           addRule(d,"D3-05","METRIC_SIGNAL_NEEDS_CONTEXT");
           d.reasonCodes.push("METRIC_CONTEXT_MAY_BE_NEEDED");
           d.suggestions.push("If you use a number, explain its baseline, scope and how it was measured.");
         }
-        if (/\b(?:for\s+\d+|among|across|serving|reached|participants|students|community)\b|(?:为\d+|覆盖|服务|参与者|学生|社区)/i.test(desc)) {
-          d.score = 3; addRule(d,"D3-03","IMPACT_SCOPE_SIGNAL");
+        if (impactScope) {
+          d.score = 3;
+          addRule(d,"D3-03","IMPACT_SCOPE_SIGNAL");
+        }
+        if (impactScope && metricComparison && actionOutcomeLink) {
+          d.score = 4;
+          addRule(d,"D3-04","ACTION_OUTCOME_LINK_SIGNAL");
         }
       } else if (genericOutcome) {
         d.status = "scored"; d.score = 1;
         d.reasonCodes.push("OUTCOME_GENERIC_ONLY");
         d.suggestions.push("Replace general praise with the actual output or result, if known.");
-      } else if (nonEmpty(desc) || nonEmpty(a.award)) {
+      } else if (hasActivity || hasAction || hasRole || nonEmpty(a.award)) {
         d.status = "scored"; d.score = 0;
         addRule(d,"D3-02","NO_IDENTIFIABLE_OUTCOME");
         d.suggestions.push("State what was produced, completed, changed or achieved. If no outcome is known, say so.");
@@ -216,7 +228,6 @@ export function evaluateAchievement(achievement = {}, options = {}) {
         d.reasonCodes.push("OUTCOME_CONTEXT_MISSING");
         d.suggestions.push("Describe the result or output of your actions, if there was one.");
       }
-      if (d.score === 4) d.score = 3; // V1.0 text signals alone cannot justify the top anchor.
       d.matchedRules = unique(d.matchedRules); d.reasonCodes = unique(d.reasonCodes); d.suggestions = unique(d.suggestions);
       scores.outcomesAndImpact = d;
     }
@@ -239,7 +250,7 @@ export function evaluateAchievement(achievement = {}, options = {}) {
         d.status = "scored"; d.score = 1;
         d.reasonCodes.push("REFLECTION_GENERIC");
         d.suggestions.push("Name one specific lesson or challenge rather than saying only that you learned a lot.");
-      } else if (nonEmpty(desc)) {
+      } else if (hasActivity || hasAction || hasRole) {
         d.status = "scored"; d.score = 0;
         addRule(d,"D4-01","NO_REFLECTION_SIGNAL");
         d.suggestions.push("Add a reflection on what you learned, what challenged you, or what you would do differently.");
