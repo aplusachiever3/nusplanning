@@ -118,8 +118,8 @@ function renderHistory() {
   }
   const latest = new Map();
   history.forEach(record => {
-    const prev = latest.get(record.achievementId);
-    if (!prev || prev.reviewedAt < record.reviewedAt) latest.set(record.achievementId, record);
+    // History is appended in review order; array order remains deterministic even when timestamps tie.
+    latest.set(record.achievementId, record);
   });
   host.innerHTML = [...latest.values()].sort((a,b)=>a.entryIndex-b.entryIndex).map(record => {
     const status = record.status === "completed" ? "Completed" : record.status === "partial" ? "Needs follow-up" : record.status === "error" ? "Error" : "Empty";
@@ -139,7 +139,7 @@ function reviewAll() {
       const result = evaluateAchievement(entry);
       if (result.status === "empty") return;
       const achievementId = `entry-${index + 1}`;
-      const previous = oldHistory.filter(r => r.achievementId === achievementId).sort((a,b)=>b.reviewedAt.localeCompare(a.reviewedAt))[0];
+      const previous = oldHistory.filter(r => r.achievementId === achievementId).at(-1);
       nextHistory.push({
         reviewId: id(),
         achievementId,
