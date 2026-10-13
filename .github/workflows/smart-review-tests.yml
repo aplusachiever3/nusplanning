@@ -19,5 +19,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Check module syntax
+        run: |
+          node --check smart-review-engine.mjs
+          node --check smart-review-ui.mjs
       - name: Run Smart Review tests
         run: node --test smart-review-v1.test.mjs
