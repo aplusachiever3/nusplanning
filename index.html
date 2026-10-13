@@ -32,7 +32,9 @@
   .field label{font-size:8pt;color:#64748b;margin:0 0 2px}
   .field input,.field select,.field textarea{display:block;width:100%;height:auto;min-height:0;border:0;border-radius:0;border-bottom:1px solid #edf0f3;background:#fff!important;color:#172b28!important;padding:2px 0;font-size:10pt;line-height:1.4;box-shadow:none;appearance:none;resize:none;overflow:visible;white-space:pre-wrap;overflow-wrap:anywhere}
   .field textarea{display:none!important}
-  .field .print-value{display:block;width:100%;border-bottom:1px solid #edf0f3;padding:2px 0;font-size:10pt;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;color:#172b28!important;background:#fff!important}
+  .field .print-value{display:block;width:100%;border-bottom:1px solid #edf0f3;padding:2px 0;font-size:10pt;line-height:1.4;color:#172b28!important;background:#fff!important}
+  .field .print-value .print-paragraph{margin:0 0 8px;white-space:pre-wrap;overflow-wrap:anywhere;break-inside:avoid!important;page-break-inside:avoid!important}
+  .field .print-value .print-paragraph:last-child{margin-bottom:0}
   .field .print-value.print-long-text{break-inside:auto!important;page-break-inside:auto!important}
   .field.print-long-text-field{break-inside:auto!important;page-break-inside:auto!important}
   .item.print-long-entry{break-inside:auto!important;page-break-inside:auto!important}
@@ -155,7 +157,12 @@ function preparePrint(){
     if(control.tagName==='TEXTAREA'){
      const printValue=document.createElement('div');
      printValue.className='print-value'+(control.value.length>500?' print-long-text':'');
-     printValue.textContent=control.value;
+     control.value.split(/\\n{2,}/).forEach(paragraph=>{
+      const block=document.createElement('div');
+      block.className='print-paragraph';
+      block.textContent=paragraph;
+      printValue.appendChild(block);
+     });
      control.insertAdjacentElement('afterend',printValue);
      control.dataset.printClone='true';
      if(control.value.length>500)fieldEl.classList.add('print-long-text-field');
