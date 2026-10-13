@@ -12,6 +12,10 @@ on:
 jobs:
   node-tests:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -28,7 +32,17 @@ jobs:
         run: npm install
       - name: Run Smart Review engine tests
         run: npm test
-      - name: Install Chromium for browser acceptance tests
-        run: npx playwright install --with-deps chromium
-      - name: Run real-browser acceptance tests
+      - name: Install browser for acceptance tests
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Run browser acceptance tests
+        env:
+          BROWSER: ${{ matrix.browser }}
         run: npm run test:browser
+      - name: Upload Chromium PDF acceptance artifact
+        if: matrix.browser == 'chromium' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smart-review-acceptance-pdf
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 7
