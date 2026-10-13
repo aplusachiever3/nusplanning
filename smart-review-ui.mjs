@@ -183,7 +183,9 @@ function installStyles() {
     #smartReviewPanel .sr-dimension{border:1px solid #e4ebe7;border-radius:8px;padding:10px;min-width:0}
     #smartReviewPanel .sr-dimension-head{display:flex;justify-content:space-between;gap:8px;font-size:13px}
     #smartReviewPanel .sr-dimension-head span{font-weight:800;white-space:nowrap}
-    #smartReviewPanel .sr-clarification{margin-top:8px;padding:8px;background:#f7f9f7;border-radius:6px;font-size:12px}\n    #smartReviewPanel .sr-clarification ul{margin:5px 0 0;padding-left:18px}\n    #smartReviewPanel .sr-meta{font-size:11px;color:#61736e;overflow-wrap:anywhere;margin:6px 0}
+    #smartReviewPanel .sr-clarification{margin-top:8px;padding:8px;background:#f7f9f7;border-radius:6px;font-size:12px}
+    #smartReviewPanel .sr-clarification ul{margin:5px 0 0;padding-left:18px}
+    #smartReviewPanel .sr-meta{font-size:11px;color:#61736e;overflow-wrap:anywhere;margin:6px 0}
     #smartReviewPanel .sr-dimension ul{padding-left:18px;font-size:12px;margin:8px 0 0}
     #smartReviewPanel .sr-empty{color:#61736e;font-size:13px}
     #smartReviewPanel details{margin-top:12px;font-size:12px}
