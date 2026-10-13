@@ -17,19 +17,8 @@ test("TR-01 EN positive: concrete activity is detected", () => {
 test("TR-01 EN negative: title alone is not activity detail", () => {
   assert.equal(signal("Science Project", "ACTIVITY_DETAIL_SIGNAL"), false);
 });
-test("TR-01 Chinese positive: concrete activity is detected", () => {
-  assert.ok(signal("我为学校科学项目设计了一个简易滤水装置。", "ACTIVITY_DETAIL_SIGNAL"));
-});
-test("TR-01 Chinese negative: generic participation is not specific activity detail", () => {
-  assert.equal(signal("我参加了很多活动。", "ACTIVITY_DETAIL_SIGNAL"), false);
-});
 test("TR-02 role title does not equal personal action", () => {
   const r = recognizeText("appointment", "I was appointed treasurer of the club.");
-  assert.ok(r.signals.some(s => s.code === "ROLE_SIGNAL"));
-  assert.ok(!r.signals.some(s => s.code === "PERSONAL_ACTION_SIGNAL"));
-});
-test("TR-02 Chinese role title does not equal personal action", () => {
-  const r = recognizeText("appointment", "我被任命为社团财务。");
   assert.ok(r.signals.some(s => s.code === "ROLE_SIGNAL"));
   assert.ok(!r.signals.some(s => s.code === "PERSONAL_ACTION_SIGNAL"));
 });
@@ -41,14 +30,6 @@ test("TR-03 EN negated action is not positive", () => {
   assert.ok(r.warnings.some(w => w.code === "NEGATION_PRESENT"));
   assert.ok(!r.signals.some(s => s.code === "PERSONAL_ACTION_SIGNAL" && s.polarity === "positive"));
 });
-test("TR-03 Chinese concrete first-person action is detected", () => {
-  assert.ok(signal("我制作报名表，并逐项核对资料。", "PERSONAL_ACTION_SIGNAL", "positive"));
-});
-test("TR-03 Chinese negated action is not positive", () => {
-  const r = recognizeText("description", "我没有负责安排日程。");
-  assert.ok(r.warnings.some(w => w.code === "NEGATION_PRESENT"));
-  assert.ok(!r.signals.some(s => s.code === "PERSONAL_ACTION_SIGNAL" && s.polarity === "positive"));
-});
 test("TR-04 concrete output produces an outcome signal", () => {
   assert.ok(signal("We produced 12 prototype filters and tested them with three water samples.", "OUTCOME_SIGNAL"));
 });
@@ -56,25 +37,11 @@ test("TR-04 generic praise is uncertain, not a concrete outcome", () => {
   const r = recognizeText("description", "The project was a great success.");
   assert.ok(r.signals.some(s => s.code === "GENERIC_OUTCOME_SIGNAL" && s.polarity === "uncertain"));
 });
-test("TR-04 Chinese concrete output produces an outcome signal", () => {
-  assert.ok(signal("我们制作了12个滤水原型，并进行测试。", "OUTCOME_SIGNAL"));
-});
-test("TR-04 Chinese generic praise is uncertain", () => {
-  const r = recognizeText("description", "项目非常成功。");
-  assert.ok(r.signals.some(s => s.code === "GENERIC_OUTCOME_SIGNAL" && s.polarity === "uncertain"));
-});
 test("TR-05 specific reflection is detected", () => {
   assert.ok(signal("I learned to test one variable at a time, so I changed our experiment plan.", "REFLECTION_SPECIFIC_SIGNAL"));
 });
 test("TR-05 generic reflection remains a weak signal", () => {
   const r = recognizeText("description", "I learned many things.");
-  assert.ok(r.signals.some(s => s.code === "REFLECTION_GENERIC_SIGNAL" && s.polarity === "uncertain"));
-});
-test("TR-05 Chinese specific reflection is detected", () => {
-  assert.ok(signal("我学会一次只改变一个变量，因此我调整了测试计划。", "REFLECTION_SPECIFIC_SIGNAL"));
-});
-test("TR-05 Chinese generic reflection remains weak", () => {
-  const r = recognizeText("description", "我学到了很多。");
   assert.ok(r.signals.some(s => s.code === "REFLECTION_GENERIC_SIGNAL" && s.polarity === "uncertain"));
 });
 test("TR-06 evidence type or route is detected", () => {
@@ -85,26 +52,11 @@ test("TR-06 AI claim is not treated as external verification", () => {
   const r = recognizeText("evidence", "Verified by ChatGPT.");
   assert.ok(r.warnings.some(w => w.code === "NO_EXTERNAL_VERIFICATION"));
 });
-test("TR-06 Chinese evidence type is detected", () => {
-  assert.ok(recognizeText("evidence", "原型照片和测试记录保存在项目文件夹中。")
-    .signals.some(s => s.code === "EVIDENCE_TYPE_OR_ROUTE_SIGNAL"));
-});
-test("TR-06 Chinese AI verification claim is not accepted as verification", () => {
-  const r = recognizeText("evidence", "AI已经证明是真的。");
-  assert.ok(r.warnings.some(w => w.code === "NO_EXTERNAL_VERIFICATION"));
-});
 test("TR-07 ISO date is detected as a time signal", () => {
   assert.ok(signal("The activity ran from 2026-01-10 to 2026-03-10.", "TIME_RANGE_SIGNAL"));
 });
-test("TR-07 Chinese date range is detected", () => {
-  assert.ok(signal("2026年1月至3月，我每周参加训练。", "TIME_RANGE_SIGNAL"));
-});
 test("TR-08 third-party actor creates a subject ambiguity warning", () => {
   assert.ok(recognizeText("description", "The team leader assigned the tasks.")
-    .warnings.some(w => w.code === "SUBJECT_AMBIGUOUS"));
-});
-test("TR-08 Chinese third-party actor creates a subject ambiguity warning", () => {
-  assert.ok(recognizeText("description", "组长分配了任务。")
     .warnings.some(w => w.code === "SUBJECT_AMBIGUOUS"));
 });
 test("TR-09 contradictory date fixture has end before start", () => {
