@@ -150,7 +150,7 @@ export function evaluateAchievement(achievement = {}, options = {}) {
       if (!activity) { d.missingRules.push("D1-02"); d.suggestions.push("Describe the activity or experience in one or two concrete sentences."); }
       if (!role) { d.missingRules.push("D1-04"); d.suggestions.push("Clarify your role or what you personally did."); }
       if (!dateKnown) { d.missingRules.push("D1-05"); d.suggestions.push("Add the time period if applicable, or clarify why dates do not apply."); }
-      if (contradictoryDates) { d.score = 1; }
+      if (contradictoryDates) { d.status = "needs-info"; d.score = null; d.reasonCodes.push("DATE_CONTRADICTION_NEEDS_CLARIFICATION"); d.suggestions.push("Correct or clarify the start and end dates before relying on this review."); }
       else if (!activity && !title && !organisation) { d.status = "needs-info"; d.score = null; d.reasonCodes.push("CONTENT_TOO_SPARSE_TO_ASSESS"); }
       else if (coreCount <= 1) d.score = 1;
       else if (coreCount === 2) d.score = 2;
@@ -273,7 +273,7 @@ export function evaluateAchievement(achievement = {}, options = {}) {
         d.reasonCodes.push("EVIDENCE_ROUTE_MISSING");
         d.suggestions.push("If available, note a record, work sample or person who could corroborate the experience. An upload is not mandatory.");
       }
-      if (attachments.length && hasEvidenceRoute) addRule(d,"D5-05","ATTACHMENT_METADATA_PRESENT");
+      if (attachments.length) { addRule(d,"D5-05","ATTACHMENT_METADATA_PRESENT"); addRule(d,"D5-06","ATTACHMENT_NOT_AUTHENTICITY_VERIFIED"); }\n      const strongEvidenceRoute = PATTERNS.evidenceType.test(evidence) && /\\b(?:saved|stored|published|available|kept|can confirm)\\b/i.test(evidence) && /\\b(?:project|activity|role|result|prototype|event)\\b/i.test(evidence);\n      if (strongEvidenceRoute && d.status === "scored") { d.score = 4; addRule(d,"D5-04","EVIDENCE_TO_ACTIVITY_LINK_SIGNAL"); }
       d.matchedRules = unique(d.matchedRules); d.reasonCodes = unique(d.reasonCodes); d.suggestions = unique(d.suggestions);
       scores.evidenceAndVerifiability = d;
     }
