@@ -146,10 +146,10 @@ Answers must be stored separately from the original description, with source `us
 
 ## 5. Acceptance test status
 
-- Recognition tests and engine-only SR tests are defined in `smart-review-v1.test.mjs`.
-- Browser-level acceptance tests are defined in `smart-review-browser.test.mjs` and run with Chromium in GitHub Actions.
-- Current automated Chromium coverage: review persistence across reload; stale marking after content edits; predecessor review linking; attachment blob storage and review metadata; CSV and JSON backup downloads; print-mode hiding of the Smart Review panel and empty achievement cards.
-- Latest successful run: [GitHub Actions](https://github.com/aplusachiever3/nusplanning/actions/runs/38329419615). The Node suite reports 55 tests, 43 passed, 0 failed, and 12 skipped; the browser suite reports 5 passed, 0 failed.
-- The 12 skipped Node tests remain explicit blocked placeholders and are **not** counted as passing. Remaining gaps include attachment changes after a saved review, reset/history behavior, deeper repeated-interaction regression, actual printed/PDF layout inspection, and cross-browser/mobile manual acceptance.
-- The current planner supports JSON export but has no JSON import UI; backup compatibility is therefore limited to preserving the existing export format and existing stored planner data.
-- The rule engine remains a first implementation, not release-ready. Passing headless Chromium tests does not replace manual review in the target browsers and viewport sizes.
+- Engine recognition and scoring tests are defined in `smart-review-v1.test.mjs`.
+- Real-browser acceptance tests are defined in `smart-review-browser.test.mjs` and run in headless Chromium through GitHub Actions.
+- Browser coverage includes: review persistence after reload; stale marking and review predecessor links; IndexedDB attachment metadata/blob storage; attachment removal; clearing current entries while retaining review history; legacy saved planner data/checklist compatibility; CSV and JSON export regression; print CSS and PDF generation; mobile viewport overflow; repeated interactions; and simulated history-storage failure.
+- The Node suite retains two explicitly blocked integration placeholders: **SR-024** (UI-level reassessment under a changed rule/rubric version) and **SR-031** (JSON backup import/restore). The current planner exposes JSON export but no JSON import/restore UI. These two skipped tests are not counted as passes.
+- The browser suite uses Chromium and includes a 375px mobile viewport. It does not constitute manual acceptance in the user's actual browser, and it does not establish identical behavior in Firefox/Safari.
+- Print acceptance currently checks print-media visibility and successful non-empty A4 PDF generation. The PDF still needs human visual review for pagination, clipping, and readability.
+- Smart Review remains an isolated draft feature. It is not an official NUS scoring rubric and does not predict admission. Do not merge or deploy until the remaining manual review and blocked cases have been explicitly accepted or resolved.
