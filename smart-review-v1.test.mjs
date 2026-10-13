@@ -209,4 +209,3 @@ test("SR-025 evaluation does not mutate the source object", () => {
   evaluateAchievement(input);
   assert.equal(JSON.stringify(input), before);
 });
-test("SR-031 legacy backup without Smart Review fields remains compatible", { skip:"BLOCKED: end-to-end backup import/restore test harness is not implemented" }, () => {});
