@@ -162,7 +162,7 @@ function installStyles() {
     #smartReviewPanel details{margin-top:12px;font-size:12px}
     #smartReviewPanel pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f6f8f6;padding:10px;border-radius:6px}
     @media(max-width:700px){#smartReviewPanel .sr-dimensions{grid-template-columns:1fr}}
-    @media print{#smartReviewPanel .sr-actions{display:none}#smartReviewPanel .sr-result{break-inside:avoid}}
+    @media print{#smartReviewPanel{display:none!important}}
   `;
   document.head.append(style);
 }
@@ -188,8 +188,8 @@ function init() {
   installStyles();
   installPanel();
   renderHistory();
-  document.addEventListener("input", () => { updateStaleFlags(); }, true);
-  document.addEventListener("change", () => { updateStaleFlags(); }, true);
+  document.addEventListener("input", () => { updateStaleFlags(); renderHistory(); }, true);
+  document.addEventListener("change", () => { updateStaleFlags(); renderHistory(); }, true);
   const items = $("items");
   if (items && "MutationObserver" in window) {
     const observer = new MutationObserver(() => {
