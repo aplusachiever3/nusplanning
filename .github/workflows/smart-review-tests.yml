@@ -23,5 +23,12 @@ jobs:
         run: |
           node --check smart-review-engine.mjs
           node --check smart-review-ui.mjs
-      - name: Run Smart Review tests
-        run: node --test smart-review-v1.test.mjs
+          node --check smart-review-browser.test.mjs
+      - name: Install test dependencies
+        run: npm install
+      - name: Run Smart Review engine tests
+        run: npm test
+      - name: Install Chromium for browser acceptance tests
+        run: npx playwright install --with-deps chromium
+      - name: Run real-browser acceptance tests
+        run: npm run test:browser
