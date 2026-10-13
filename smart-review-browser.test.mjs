@@ -209,7 +209,7 @@ test("BR-006 removing an attachment marks the prior review stale without deletin
     await page.getByText("Review saved for 1 non-empty entry.").waitFor();
     const oldRecord = await page.evaluate(() => JSON.parse(localStorage.getItem("nusmedicine-smart-review-history-v1"))[0]);
     await page.getByRole("button", { name: "Remove remove-me.txt" }).click();
-    await page.getByText("No files attached yet.").waitFor();
+    await page.locator("#file-list-0").getByText("No files attached yet.").waitFor();
     await page.getByText("Content changed since this review").waitFor();
     const history = await page.evaluate(() => JSON.parse(localStorage.getItem("nusmedicine-smart-review-history-v1")));
     assert.equal(history.length, 1);
