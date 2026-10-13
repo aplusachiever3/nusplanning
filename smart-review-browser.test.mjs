@@ -46,8 +46,12 @@ after(async () => {
   await new Promise(resolveClose => server?.close(resolveClose));
 });
 
-async function openCleanPage() {
-  const context = await browser.newContext({ acceptDownloads: true });
+async function openCleanPage(seed = null, viewport = null) {
+  const context = await browser.newContext({ acceptDownloads: true, ...(viewport ? { viewport } : {}) });
+  if (seed) await context.addInitScript(({ planner, history }) => {
+    localStorage.setItem("nusmedicine-top10-v1", JSON.stringify(planner));
+    if (history !== undefined) localStorage.setItem("nusmedicine-smart-review-history-v1", JSON.stringify(history));
+  }, seed);
   const page = await context.newPage();
   await page.goto(origin);
   await page.locator("#smartReviewPanel").waitFor();
@@ -185,6 +189,145 @@ test("BR-005 print media hides Smart Review and empty achievement cards", async 
     assert.equal(await page.locator('.item[data-print-empty="true"]').count(), 9);
     const emptyTitleDisplay = await page.locator('.field[data-print-empty="true"]').first().evaluate(el => getComputedStyle(el).display);
     assert.equal(emptyTitleDisplay, "none");
+  } finally {
+    await context.close();
+  }
+});
+
+
+test("BR-006 removing an attachment marks the prior review stale without deleting the review", async () => {
+  const { context, page } = await openCleanPage();
+  try {
+    await fillFirstEntry(page);
+    await page.locator("#files-0").setInputFiles({
+      name: "remove-me.txt",
+      mimeType: "text/plain",
+      buffer: Buffer.from("Attachment removal regression check.")
+    });
+    await page.getByText("remove-me.txt").waitFor();
+    await page.locator("#srRun").click();
+    await page.getByText("Review saved for 1 non-empty entry.").waitFor();
+    const oldRecord = await page.evaluate(() => JSON.parse(localStorage.getItem("nusmedicine-smart-review-history-v1"))[0]);
+    await page.getByRole("button", { name: "Remove remove-me.txt" }).click();
+    await page.getByText("No files attached yet.").waitFor();
+    await page.getByText("Content changed since this review").waitFor();
+    const history = await page.evaluate(() => JSON.parse(localStorage.getItem("nusmedicine-smart-review-history-v1")));
+    assert.equal(history.length, 1);
+    assert.equal(history[0].reviewId, oldRecord.reviewId);
+    assert.equal(history[0].stale, true);
+    assert.equal(history[0].inputSnapshot.attachments[0].name, "remove-me.txt");
+    const currentAttachments = await page.evaluate(() => JSON.parse(localStorage.getItem("nusmedicine-top10-v1")).data[0].attachments);
+    assert.equal(currentAttachments.length, 0);
+  } finally {
+    await context.close();
+  }
+});
+
+test("BR-007 clearing planner entries preserves review history and marks it stale", async () => {
+  const { context, page } = await openCleanPage();
+  try {
+    await fillFirstEntry(page, "Reset Regression Entry");
+    await page.locator("#srRun").click();
+    await page.getByText("Review saved for 1 non-empty entry.").waitFor();
+    const before = await page.evaluate(() => JSON.parse(localStorage.getItem("nusmedicine-smart-review-history-v1"))[0]);
+    page.once("dialog", dialog => dialog.accept());
+    await page.locator("#reset").click();
+    await page.getByText("Content changed since this review").waitFor();
+    const planner = await page.evaluate(() => JSON.parse(localStorage.getItem("nusmedicine-top10-v1")));
+    const history = await page.evaluate(() => JSON.parse(localStorage.getItem("nusmedicine-smart-review-history-v1")));
+    assert.equal(planner.data.length, 10);
+    assert.equal(planner.data[0].title, "");
+    assert.equal(history.length, 1);
+    assert.equal(history[0].reviewId, before.reviewId);
+    assert.equal(history[0].inputSnapshot.title, "Reset Regression Entry");
+    assert.equal(history[0].stale, true);
+    assert.equal(await page.locator("#smartReviewPanel").count(), 1);
+    assert.equal(await page.locator("#srRun").count(), 1);
+  } finally {
+    await context.close();
+  }
+});
+
+test("BR-008 existing legacy planner data and checklist survive Smart Review initialization", async () => {
+  const legacyEntry = {
+    title: "Legacy saved achievement",
+    category: "Research",
+    start: "02/24",
+    end: "11/24",
+    description: "Original description remains untouched.",
+    award: "School award",
+    appointment: "Research assistant",
+    organisation: "School laboratory",
+    participationLevel: "School / Class",
+    evidence: "Original evidence note",
+    attachments: [],
+    ready: true,
+    legacyCustomField: "preserve existing data"
+  };
+  const { context, page } = await openCleanPage({
+    planner: { data: [legacyEntry], checks: { dates: true, proof: false }, updatedAt: "2026-01-01T00:00:00.000Z" }
+  });
+  try {
+    assert.equal(await page.locator("#title-0").inputValue(), legacyEntry.title);
+    assert.equal(await page.locator("#description-0").inputValue(), legacyEntry.description);
+    assert.equal(await page.locator("#ready-0").count(), 0); // readiness is represented by the card checkbox
+    assert.equal(await page.locator('.item input[data-k="ready"]').first().isChecked(), true);
+    assert.equal(await page.locator('[data-check="dates"]').isChecked(), true);
+    await page.locator("#srRun").click();
+    await page.getByText("Review saved for 1 non-empty entry.").waitFor();
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("nusmedicine-top10-v1")));
+    assert.equal(saved.data[0].title, legacyEntry.title);
+    assert.equal(saved.data[0].description, legacyEntry.description);
+    assert.equal(saved.data[0].legacyCustomField, "preserve existing data");
+    assert.deepEqual(saved.checks, { dates: true, proof: false });
+    const reviewHistory = await page.evaluate(() => JSON.parse(localStorage.getItem("nusmedicine-smart-review-history-v1")));
+    assert.equal(reviewHistory.length, 1);
+    assert.equal(reviewHistory[0].inputSnapshot.title, legacyEntry.title);
+  } finally {
+    await context.close();
+  }
+});
+
+test("BR-009 mobile viewport has no horizontal page overflow and one responsive review panel", async () => {
+  const { context, page } = await openCleanPage(null, { width: 375, height: 812 });
+  try {
+    await fillFirstEntry(page, "Mobile Acceptance Entry");
+    await page.locator("#srRun").click();
+    await page.getByText("Review saved for 1 non-empty entry.").waitFor();
+    const layout = await page.evaluate(() => ({
+      viewportWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      panels: document.querySelectorAll("#smartReviewPanel").length,
+      columns: getComputedStyle(document.querySelector("#smartReviewPanel .sr-dimensions")).gridTemplateColumns
+    }));
+    assert.equal(layout.panels, 1);
+    assert.ok(layout.scrollWidth <= layout.viewportWidth, JSON.stringify(layout));
+    assert.ok(!layout.columns.includes(" "), "Expected a single review column on mobile");
+  } finally {
+    await context.close();
+  }
+});
+
+test("BR-010 repeated review panel interactions do not duplicate handlers or mutate saved achievement text", async () => {
+  const { context, page } = await openCleanPage();
+  try {
+    await fillFirstEntry(page, "Interaction Regression Entry");
+    const original = await page.locator("#description-0").inputValue();
+    await page.locator("#srRefresh").click();
+    await page.locator("#srRefresh").click();
+    await page.locator("#srRun").click();
+    await page.getByText("Review saved for 1 non-empty entry.").waitFor();
+    let history = await page.evaluate(() => JSON.parse(localStorage.getItem("nusmedicine-smart-review-history-v1")));
+    assert.equal(history.length, 1);
+    await page.locator("#srRefresh").click();
+    await page.locator("#srRun").click();
+    await page.getByText("Review saved for 1 non-empty entry.").waitFor();
+    history = await page.evaluate(() => JSON.parse(localStorage.getItem("nusmedicine-smart-review-history-v1")));
+    assert.equal(history.length, 2);
+    assert.equal(history[1].previousReviewId, history[0].reviewId);
+    assert.equal(await page.locator("#smartReviewPanel").count(), 1);
+    assert.equal(await page.locator("#srRun").count(), 1);
+    assert.equal(await page.locator("#description-0").inputValue(), original);
   } finally {
     await context.close();
   }
